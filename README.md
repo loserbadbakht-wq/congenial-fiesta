@@ -64,9 +64,9 @@ npm install
 # Bundle the content script and Video.js
 npm run build
 
-# Prepare the dist folder (Note: uses manifest.chrome.json)
+# Prepare the dist folder
 mkdir -p dist/icons
-cp manifest.chrome.json dist/manifest.json
+cp manifest.json dist/manifest.json
 cp icons/*.png dist/icons/
 cp LICENSE dist/
 cp NOTICE dist/
