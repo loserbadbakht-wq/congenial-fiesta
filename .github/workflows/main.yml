@@ -42,17 +42,27 @@ jobs:
 
       - name: Commit and push built extension to repo
         run: |
+          set -e
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # 1. Preserve the artifact outside the working tree
+          mkdir -p /tmp/out
+          cp web-ext-artifacts/*.zip /tmp/out/
+
+          # 2. Drop any dirty tracked files (package-lock etc.) before branching
+          git reset --hard HEAD
+
+          # 3. Rebuild the `builds` branch from scratch
           git checkout --orphan builds
-          git rm -rf --cached .
+          git rm -rf . || true
 
-          cp web-ext-artifacts/*.zip .
-
-          git add *.zip
+          # 4. Put the new artifact and README in place (replaces everything)
+          cp /tmp/out/*.zip .
           printf "# Latest Build\n\nDownload the latest extension build below.\n" > README.md
-          git add README.md
 
+          # 5. Commit and overwrite the remote `builds` branch
+          git add -A
           git commit -m "Auto-build: $(date +'%Y-%m-%d %H:%M:%S')"
           git push -f origin builds
