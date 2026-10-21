@@ -2,7 +2,7 @@ name: Build Firefox Extension and Push to Repo
 
 on:
   push:
-    branches: [main]
+    branches: [firefox]
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Bundle Video.js and content script
         run: npm run build
@@ -31,8 +31,10 @@ jobs:
         run: |
           mkdir -p dist/icons
           cp manifest.json dist/
-          cp -r icons/. dist/icons/
-          npm run icons
+          cp icons/*.png dist/icons/
+          # Include license files in the final package as well
+          cp LICENSE dist/ || true
+          cp NOTICE dist/ || true
 
       - name: Lint extension
         run: npx web-ext lint --source-dir dist
@@ -43,26 +45,19 @@ jobs:
       - name: Commit and push built extension to repo
         run: |
           set -e
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 1. Preserve the artifact outside the working tree
           mkdir -p /tmp/out
           cp web-ext-artifacts/*.zip /tmp/out/
 
-          # 2. Drop any dirty tracked files (package-lock etc.) before branching
           git reset --hard HEAD
-
-          # 3. Rebuild the `builds` branch from scratch
-          git checkout --orphan builds
+          git checkout --orphan builds-firefox
           git rm -rf . || true
 
-          # 4. Put the new artifact and README in place (replaces everything)
           cp /tmp/out/*.zip .
-          printf "# Latest Build\n\nDownload the latest extension build below.\n" > README.md
+          printf "# Latest Firefox Build\n\nDownload the latest extension below.\n" > README.md
 
-          # 5. Commit and overwrite the remote `builds` branch
           git add -A
-          git commit -m "Auto-build: $(date +'%Y-%m-%d %H:%M:%S')"
-          git push -f origin builds
+          git commit -m "Auto-build (Firefox): $(date +'%Y-%m-%d %H:%M:%S')"
+          git push -f origin builds-firefox
