@@ -13,7 +13,6 @@
   "devDependencies": {
     "@videojs/html": "^10.1.0",
     "esbuild": "^0.25.0",
-    "sharp": "^0.33.0",
     "web-ext": "^8.0.0"
   }
 }
