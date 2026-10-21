@@ -1,50 +1,95 @@
-import '@videojs/html/video/player';
-import '@videojs/html/video/skin';
-import '@videojs/html/audio/player';
-import '@videojs/html/audio/skin';
+// src/content.js
+//
+// Runs in the page's MAIN world (manifest: "world": "MAIN") so that
+// customElements.define() calls from @videojs/html register the players
+// in the registry the actual page DOM uses.
+//
+// Two safeguards beyond the standard import pattern:
+//   1. Explicit module references + a window assignment prevent esbuild
+//      from tree-shaking the side-effect imports.
+//   2. A "whenDefined" guard waits for registration before replacing
+//      any DOM element, and logs loudly if registration failed.
 
-console.log('[Gamefa Video.js] Custom elements registered.');
+import * as videoPlayerModule from '@videojs/html/video/player';
+import * as videoSkinModule   from '@videojs/html/video/skin';
+import * as audioPlayerModule from '@videojs/html/audio/player';
+import * as audioSkinModule   from '@videojs/html/audio/skin';
 
-const MEDIA_SELECTOR = 'video, audio';
-const PLAYER_TAGS = new Set(['VIDEO-PLAYER', 'AUDIO-PLAYER']);
+// Keep the four modules reachable at runtime. Assigning the truthiness
+// of all four to a window property is an observable side effect, so
+// esbuild's tree-shaker keeps the imports and their register calls.
+window.__vjsModulesLoaded = !!(videoPlayerModule && videoSkinModule && audioPlayerModule && audioSkinModule);
 
-/**
- * Replace a native <video> or <audio> element with the corresponding
- * Video.js 10 custom element structure.
- */
+// Loud check — if anything went wrong upstream, we see it in the console.
+(function verifyRegistration() {
+  const tags = ['video-player', 'video-skin', 'audio-player', 'audio-skin'];
+  for (const tag of tags) {
+    if (!customElements.get(tag)) {
+      console.error(`[Gamefa Video.js] <${tag}> was NOT registered.`);
+    }
+  }
+  console.log('[Gamefa Video.js] Custom elements registered:', tags.join(', '));
+})();
+
+/* ------------------------------------------------------------------ */
+/* Sizing — keep the player from stretching to full container width.  */
+/* ------------------------------------------------------------------ */
+function injectSizeStyles() {
+  if (document.getElementById('gft-vjs-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'gft-vjs-styles';
+  style.textContent = `
+    video-player, audio-player {
+      display: block;
+      max-width: 100%;
+      width: auto;
+    }
+    video-player > video-skin,
+    audio-player > audio-skin {
+      display: block;
+      max-width: 100%;
+    }
+    video-player > video-skin > video {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+/* ------------------------------------------------------------------ */
+/* Replacement                                                        */
+/* ------------------------------------------------------------------ */
+const ATTRS_TO_COPY = ['poster', 'preload', 'width', 'height', 'autoplay', 'muted', 'loop'];
+
 function replaceMediaElement(el) {
-  // Skip if already inside a Video.js player
+  if (!el || !el.parentNode) return;
   if (el.closest('video-player, audio-player')) return;
-  // Skip if the parent is already a player (safety)
-  if (PLAYER_TAGS.has(el.parentElement?.tagName)) return;
+  if (el.parentElement && /^(VIDEO|AUDIO)-PLAYER$/.test(el.parentElement.tagName)) return;
 
   const isVideo = el.tagName === 'VIDEO';
-  const playerTag = isVideo ? 'video-player' : 'audio-player';
-  const skinTag = isVideo ? 'video-skin' : 'audio-skin';
-  const mediaTag = isVideo ? 'video' : 'audio';
+  const player  = document.createElement(isVideo ? 'video-player' : 'audio-player');
+  const skin    = document.createElement(isVideo ? 'video-skin'   : 'audio-skin');
+  const media   = document.createElement(isVideo ? 'video'        : 'audio');
 
-  const player = document.createElement(playerTag);
-  const skin = document.createElement(skinTag);
-  const media = document.createElement(mediaTag);
+  // Carry over classes / inline styles so the page's own rules keep
+  // matching — this is what stops the player from blowing up in size.
+  if (el.className)   player.className = el.className;
+  const inlineStyle = el.getAttribute('style');
+  if (inlineStyle)    player.setAttribute('style', inlineStyle);
+  if (el.className)   media.className = el.className;
 
-  // Copy attributes that make sense for the new media element
-  const attrsToCopy = ['poster', 'preload', 'width', 'height', 'controls', 'autoplay', 'muted', 'loop'];
-  attrsToCopy.forEach(attr => {
-    if (el.hasAttribute(attr)) {
-      media.setAttribute(attr, el.getAttribute(attr));
-    }
-  });
+  for (const attr of ATTRS_TO_COPY) {
+    if (el.hasAttribute(attr)) media.setAttribute(attr, el.getAttribute(attr));
+  }
+  media.setAttribute('controls', '');
 
-  const src = el.getAttribute('src');
   const sources = el.querySelectorAll('source');
-
   if (sources.length > 0) {
-    sources.forEach(source => {
-      media.appendChild(source.cloneNode(true));
-    });
-  } else if (src) {
-    const absoluteSrc = new URL(src, location.href).href;
-    media.setAttribute('src', absoluteSrc);
+    sources.forEach(s => media.appendChild(s.cloneNode(true)));
+  } else if (el.getAttribute('src')) {
+    media.setAttribute('src', el.getAttribute('src'));
   } else {
     return; // nothing to play — leave it alone
   }
@@ -53,41 +98,39 @@ function replaceMediaElement(el) {
   player.appendChild(skin);
   el.replaceWith(player);
 
-  console.log(`[Gamefa Video.js] Replaced ${el.tagName} with ${playerTag}`);
+  console.log(`[Gamefa Video.js] Replaced <${el.tagName.toLowerCase()}> with <${player.tagName.toLowerCase()}>`);
 }
 
-/**
- * Process a DOM node and its descendants for media elements.
- */
 function processNode(node) {
   if (node.nodeType !== Node.ELEMENT_NODE) return;
-
-  if (node.matches?.(MEDIA_SELECTOR)) {
-    replaceMediaElement(node);
-  }
-  node.querySelectorAll?.(MEDIA_SELECTOR).forEach(replaceMediaElement);
+  if (node.matches?.('video, audio')) replaceMediaElement(node);
+  node.querySelectorAll?.('video, audio').forEach(replaceMediaElement);
 }
 
-/**
- * Initialise the extension: process existing media and observe for new ones.
- */
-function init() {
-  const container = document.querySelector('#activity-stream') || document.body;
+/* ------------------------------------------------------------------ */
+/* Init                                                               */
+/* ------------------------------------------------------------------ */
+async function init() {
+  injectSizeStyles();
 
-  container.querySelectorAll(MEDIA_SELECTOR).forEach(replaceMediaElement);
+  // Wait for Video.js to finish registering its custom elements.
+  await Promise.all([
+    customElements.whenDefined('video-player'),
+    customElements.whenDefined('video-skin'),
+    customElements.whenDefined('audio-player'),
+    customElements.whenDefined('audio-skin'),
+  ]);
+  console.log('[Gamefa Video.js] Custom elements ready.');
+
+  const container = document.querySelector('#activity-stream') || document.body;
+  container.querySelectorAll('video, audio').forEach(replaceMediaElement);
 
   const observer = new MutationObserver(mutations => {
     for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        processNode(node);
-      }
+      for (const node of mutation.addedNodes) processNode(node);
     }
   });
-
-  observer.observe(container, {
-    childList: true,
-    subtree: true,
-  });
+  observer.observe(container, { childList: true, subtree: true });
 
   console.log('[Gamefa Video.js] Observer started on', container);
 }
