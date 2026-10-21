@@ -6,7 +6,6 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "esbuild src/content.js --bundle --format=iife --minify --outfile=dist/content.js",
-    "icons": "node scripts/resize-icons.js",
     "lint": "web-ext lint --source-dir dist",
     "package": "web-ext build --source-dir dist --artifacts-dir web-ext-artifacts"
   },
