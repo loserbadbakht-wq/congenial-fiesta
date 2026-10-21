@@ -1,0 +1,57 @@
+name: Build Firefox Extension and Push to Repo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bundle Video.js and content script
+        run: npm run build
+
+      - name: Copy manifest and static assets
+        run: |
+          mkdir -p dist/icons
+          cp manifest.json dist/
+          cp -r icons/. dist/icons/
+
+      - name: Lint extension
+        run: npx web-ext lint --source-dir dist
+
+      - name: Build extension package
+        run: npx web-ext build --source-dir dist --artifacts-dir web-ext-artifacts
+
+      - name: Commit and push built extension to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout --orphan builds
+          git rm -rf --cached .
+
+          cp web-ext-artifacts/*.zip .
+
+          git add *.zip
+          printf "# Latest Build\n\nDownload the latest extension build below.\n" > README.md
+          git add README.md
+
+          git commit -m "Auto-build: $(date +'%Y-%m-%d %H:%M:%S')"
+          git push -f origin builds
