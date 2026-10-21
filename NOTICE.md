@@ -23,7 +23,14 @@ limitations under the License.
 
 ------------------------------------------------------------------
 
-Trademark Notice:
+Trademark Notice & Affiliation Disclaimer:
 “Video.js” is a registered trademark of Brightcove Inc.
 The project is maintained independently by the open-source community,
 governed by the Video.js Technical Steering Committee.
+
+“Gamefa” and “gamefa.com” are the property of their respective owners.
+This browser extension is an independent, open-source project and is
+not affiliated with, endorsed by, sponsored by, or in any way officially
+connected to Gamefa or its operators. The name "Gamefa" is used strictly
+for descriptive purposes to indicate the website on which this extension
+operates.
