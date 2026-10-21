@@ -14,9 +14,10 @@ A browser extension for Firefox and Chrome that replaces the native `<video>` an
 
 ## Repository Structure
 
-This repository uses separate branches for each browser to keep the build environments clean:
+This repository uses separate branches for each browser to keep the build environments clean. The GitHub Actions workflow is defined in `.github/workflows/main.yml`.
+
 - **`firefox` branch:** Contains the source code and Firefox `manifest.json`.
-- **`chrome` branch:** Contains the source code and Chrome `manifest.chrome.json`.
+- **`chrome` branch:** Contains the source code and Chrome `manifest.json`.
 - **`builds-firefox` branch:** Contains the auto-generated `.zip` ready for Mozilla Add-ons (AMO).
 - **`builds-chrome` branch:** Contains the auto-generated `.zip` ready for the Chrome Web Store.
 
@@ -33,8 +34,8 @@ To build the extension exactly as the GitHub Actions workflows do, first clone t
 git clone -b firefox https://github.com/loserbadbakht-wq/congenial-fiesta.git
 cd congenial-fiesta
 
-# Install dependencies
-npm install
+# Install dependencies (using npm ci for exact lockfile matches)
+npm ci
 
 # Bundle the content script and Video.js
 npm run build
@@ -47,7 +48,7 @@ cp LICENSE dist/
 cp NOTICE dist/
 
 # Package the extension for Firefox
-npm run package:ff 
+npm run package
 # (Creates a .zip in web-ext-artifacts/ ready for AMO)
 ```
 
@@ -59,20 +60,20 @@ git clone -b chrome https://github.com/loserbadbakht-wq/congenial-fiesta.git
 cd congenial-fiesta
 
 # Install dependencies
-npm install
+npm ci
 
 # Bundle the content script and Video.js
 npm run build
 
-# Prepare the dist folder
+# Prepare the dist folder (Note: same manifest.json name, different content)
 mkdir -p dist/icons
-cp manifest.json dist/manifest.json
+cp manifest.json dist/
 cp icons/*.png dist/icons/
 cp LICENSE dist/
 cp NOTICE dist/
 
 # Package the extension for Chrome
-npm run package:chrome
+npm run package
 # (Creates gamefa-videojs-chrome.zip in the root directory)
 ```
 
