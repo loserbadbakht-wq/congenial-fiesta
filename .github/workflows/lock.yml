@@ -1,0 +1,43 @@
+name: Generate package-lock.json
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'package.json'
+
+jobs:
+  generate-lock:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Persist credentials so the push step can authenticate
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate package-lock.json
+        run: npm install --package-lock-only --no-audit --no-fund
+
+      - name: Commit and push lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Nothing to do if the lockfile is already up to date
+          if git diff --quiet -- package-lock.json && [ -f package-lock.json ]; then
+            echo "package-lock.json is already up to date."
+            exit 0
+          fi
+
+          git add package-lock.json
+          git commit -m "chore: update package-lock.json"
+          git push
