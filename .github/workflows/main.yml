@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Bundle Video.js and content script
         run: npm run build
@@ -31,15 +31,8 @@ jobs:
         run: |
           mkdir -p dist/icons
           cp manifest.json dist/
-
-          # 48×48 from the 96×96 PNG
-          convert icons/favicon-96x96.png -resize 48x48 dist/icons/icon-48.png
-
-          # 96×96 as-is
-          cp icons/favicon-96x96.png dist/icons/icon-96.png
-
-          # 128×128 from the 192×192 PNG
-          convert icons/web-app-manifest-192x192.png -resize 128x128 dist/icons/icon-128.png
+          cp -r icons/. dist/icons/
+          npm run icons
 
       - name: Lint extension
         run: npx web-ext lint --source-dir dist
