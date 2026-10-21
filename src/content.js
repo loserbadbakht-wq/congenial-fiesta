@@ -9,7 +9,7 @@ import * as videoSkinModule   from '@videojs/html/video/skin';
 import * as audioPlayerModule from '@videojs/html/audio/player';
 import * as audioSkinModule   from '@videojs/html/audio/skin';
 
-window.__vjsModulesLoaded =
+window.__vjsModulesLoaded = 
   !!(videoPlayerModule && videoSkinModule && audioPlayerModule && audioSkinModule);
 
 (function verifyRegistration() {
@@ -64,7 +64,11 @@ function replaceMediaElement(el) {
   for (const attr of ATTRS_TO_COPY) {
     if (el.hasAttribute(attr)) media.setAttribute(attr, el.getAttribute(attr));
   }
-  media.setAttribute('controls', '');
+
+  // IMPORTANT: Explicitly remove native controls. The Video.js skin will
+  // provide the UI. If we leave this on, you get double controls (native + VJS).
+  media.removeAttribute('controls');
+  media.setAttribute('playsinline', '');
 
   const sources = el.querySelectorAll('source');
   if (sources.length > 0) {
@@ -78,21 +82,11 @@ function replaceMediaElement(el) {
   skin.appendChild(media);
   player.appendChild(skin);
 
-  // Replace the outermost MediaElement.js wrapper (if any) so the old
-  // controls, timeline, and play overlay disappear with it.
-  const oldWrapper =
-       el.closest('.mejs-container')
-    || el.closest('.wp-video')
-    || el;
-
+  // Replace the outermost MediaElement.js wrapper (if any)
+  const oldWrapper = el.closest('.mejs-container') || el.closest('.wp-video') || el;
   oldWrapper.replaceWith(player);
 
-  console.log(
-    `[Gamefa Video.js] Replaced <${el.tagName.toLowerCase()}> ` +
-    `(wrapper: <${oldWrapper.tagName.toLowerCase()}${
-      oldWrapper.className ? '.' + oldWrapper.className.split(' ').join('.') : ''
-    }>)`
-  );
+  console.log(`[Gamefa Video.js] Replaced <${el.tagName.toLowerCase()}>`);
 }
 
 function processNode(node) {
@@ -132,4 +126,4 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
-     }
+}
