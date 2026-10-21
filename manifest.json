@@ -6,7 +6,7 @@
   "description": "Replaces native video and audio players on Gamefa group pages with Video.js 10 custom elements.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "gamefa-videojs@example.com",
+      "id": "gamefa-videojs@loserbadbakht-wq.github.io",
       "strict_min_version": "128.0",
       "data_collection_permissions": {
         "required": ["none"]
