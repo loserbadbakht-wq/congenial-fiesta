@@ -1,8 +1,8 @@
-name: Build Firefox Extension and Push to Repo
+name: Build Chrome Extension and Push to Repo
 
 on:
   push:
-    branches: [firefox]
+    branches: [chrome]
   workflow_dispatch:
 
 jobs:
@@ -27,20 +27,19 @@ jobs:
       - name: Bundle Video.js and content script
         run: npm run build
 
-      - name: Prepare dist (manifest + icons)
+      - name: Prepare dist (manifest + static files)
         run: |
           mkdir -p dist/icons
           cp manifest.json dist/
           cp icons/*.png dist/icons/
-          # Include license files in the final package as well
-          cp LICENSE dist/ || true
-          cp NOTICE dist/ || true
+          cp LICENSE dist/
+          cp NOTICE dist/
 
-      - name: Lint extension
-        run: npx web-ext lint --source-dir dist
-
-      - name: Build extension package
-        run: npx web-ext build --source-dir dist --artifacts-dir web-ext-artifacts
+      - name: Package extension
+        run: |
+          set -e
+          npm run package
+          ls -la gamefa-videojs-chrome.zip
 
       - name: Commit and push built extension to repo
         run: |
@@ -49,15 +48,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           mkdir -p /tmp/out
-          cp web-ext-artifacts/*.zip /tmp/out/
+          cp gamefa-videojs-chrome.zip /tmp/out/
 
           git reset --hard HEAD
-          git checkout --orphan builds-firefox
+          git checkout --orphan builds-chrome
           git rm -rf . || true
 
-          cp /tmp/out/*.zip .
-          printf "# Latest Firefox Build\n\nDownload the latest extension below.\n" > README.md
+          cp /tmp/out/gamefa-videojs-chrome.zip .
+          printf "# Latest Chrome Build\n\nDownload the latest extension below.\n" > README.md
 
           git add -A
-          git commit -m "Auto-build (Firefox): $(date +'%Y-%m-%d %H:%M:%S')"
-          git push -f origin builds-firefox
+          git commit -m "Auto-build (Chrome): $(date +'%Y-%m-%d %H:%M:%S')"
+          git push -f origin builds-chrome
