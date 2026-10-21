@@ -10,7 +10,7 @@
     "package": "web-ext build --source-dir dist --artifacts-dir web-ext-artifacts"
   },
   "devDependencies": {
-    "@videojs/html": "^10.1.0"
+    "@videojs/html": "^10.1.0",
     "esbuild": "^0.25.0",
     "web-ext": "^8.0.0"
   }
