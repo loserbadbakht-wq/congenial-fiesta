@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Gamefa Video.js Player",
+  "name": "Gamefa Video.js 10 Player",
   "short_name": "Gamefa VJS",
   "version": "1.0.0",
   "description": "Replaces native video and audio players on Gamefa group pages with Video.js 10 custom elements.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "gamefa-videojs@loserbadbakht-wq.github.io",
+      "id": "gamefa-videojs-10@loserbadbakht-wq.github.io",
       "strict_min_version": "128.0",
       "data_collection_permissions": {
         "required": ["none"]
