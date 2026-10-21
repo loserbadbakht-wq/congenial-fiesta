@@ -23,8 +23,9 @@
       "matches": ["*://gamefa.com/groups/*"],
       "js": ["content.js"],
       "run_at": "document_idle",
+      "world": "MAIN",
       "all_frames": false
     }
   ],
   "permissions": []
-}
+        }
