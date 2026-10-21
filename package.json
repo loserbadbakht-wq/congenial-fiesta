@@ -2,16 +2,14 @@
   "name": "gamefa-videojs-extension",
   "version": "1.0.0",
   "private": true,
-  "description": "Firefox extension that swaps Gamefa group media players for Video.js 10 custom elements.",
+  "description": "Chrome extension that swaps Gamefa group media players for Video.js 10 custom elements.",
   "license": "Apache-2.0",
   "scripts": {
     "build": "esbuild src/content.js --bundle --format=iife --minify --outfile=dist/content.js",
-    "lint": "web-ext lint --source-dir dist",
-    "package": "web-ext build --source-dir dist --artifacts-dir web-ext-artifacts"
+    "package": "cd dist && zip -r ../gamefa-videojs-chrome.zip ."
   },
   "devDependencies": {
     "@videojs/html": "^10.1.0",
-    "esbuild": "^0.25.0",
-    "web-ext": "^8.0.0"
+    "esbuild": "^0.25.0"
   }
 }
