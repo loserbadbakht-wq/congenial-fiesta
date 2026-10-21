@@ -25,6 +25,10 @@ jobs:
           USER_FOLDER: ${{ inputs.folder_name }}
           ALL_URLS: |
             https://uploadkon.ir/uploads/08bf21_26favicon.svg
+            https://uploadkon.ir/uploads/c82021_26apple-touch-icon.png
+            https://uploadkon.ir/uploads/5d0921_26web-app-manifest-512x512.png
+            https://uploadkon.ir/uploads/ddfc21_26favicon-96x96.png
+            https://uploadkon.ir/uploads/1b6521_26web-app-manifest-192x192.png
 
         run: |
           set -euo pipefail
