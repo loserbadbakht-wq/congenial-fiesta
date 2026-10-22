@@ -3,3 +3,4 @@ site_url: https://loserbadbakht-wq.github.io/congenial-fiesta/
 theme:
   name: material
   language: fa
+  logo: assets/logo.svg
