@@ -1,1 +1,5 @@
-site_name: My Docs
+site_name: VideoJS 10 برای گیمفا
+site_url: https://loserbadbakht-wq.github.io/congenial-fiesta/
+theme:
+  name: material
+  language: fa
