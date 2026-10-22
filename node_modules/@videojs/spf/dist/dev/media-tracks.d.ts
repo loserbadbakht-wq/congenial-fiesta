@@ -1,0 +1,3 @@
+import { AudioTrack, VideoTrack } from "./media/types/index.js";
+import { AudioDedupeKey, VideoDedupeKey, dedupedAudioTracks, dedupedVideoTracks, findAudioTrackById, findVideoTrackById, frameRateToNumber, isSameAudioTrack, isSameVideoTrack, toUserAudioTrackSelection, toUserVideoTrackSelection } from "./media/media-tracks/media-tracks.js";
+export { type AudioDedupeKey, type AudioTrack, type VideoDedupeKey, type VideoTrack, dedupedAudioTracks, dedupedVideoTracks, findAudioTrackById, findVideoTrackById, frameRateToNumber, isSameAudioTrack, isSameVideoTrack, toUserAudioTrackSelection, toUserVideoTrackSelection };

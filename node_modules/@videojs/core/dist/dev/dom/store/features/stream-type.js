@@ -1,0 +1,34 @@
+import { definePlayerFeature } from "../../feature.js";
+import { listen } from "@videojs/utils/dom";
+import { MediaStreamTypes, isMediaBufferCapable, isMediaSeekCapable, isMediaStreamTypeCapable } from "@videojs/media";
+//#region src/dom/store/features/stream-type.ts
+const streamTypeFeature = definePlayerFeature({
+	name: "streamType",
+	state: () => ({ streamType: MediaStreamTypes.UNKNOWN }),
+	attach({ target, signal, set }) {
+		const { media } = target;
+		if (isMediaStreamTypeCapable(media)) {
+			const sync = () => set({ streamType: media.streamType });
+			sync();
+			listen(media, "streamtypechange", sync, { signal });
+			return;
+		}
+		if (!isMediaSeekCapable(media)) return;
+		const detect = () => {
+			const { duration } = media;
+			if (duration === Number.POSITIVE_INFINITY) return MediaStreamTypes.LIVE;
+			if (Number.isFinite(duration) && duration > 0) return MediaStreamTypes.ON_DEMAND;
+			return MediaStreamTypes.UNKNOWN;
+		};
+		const sync = () => set({ streamType: detect() });
+		sync();
+		listen(media, "durationchange", sync, { signal });
+		listen(media, "loadedmetadata", sync, { signal });
+		listen(media, "emptied", sync, { signal });
+		if (isMediaBufferCapable(media)) listen(media, "progress", sync, { signal });
+	}
+});
+//#endregion
+export { streamTypeFeature };
+
+//# sourceMappingURL=stream-type.js.map
