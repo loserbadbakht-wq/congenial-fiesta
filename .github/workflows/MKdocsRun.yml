@@ -1,0 +1,43 @@
+name: Setup MkDocs Material
+
+on:
+  workflow_dispatch:        # run manually from the Actions tab
+
+permissions:
+  contents: write           # needed to push back to the repo
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install MkDocs Material
+        run: pip install mkdocs-material
+
+      - name: Scaffold MkDocs project
+        run: |
+          if [ -f mkdocs.yml ]; then
+            echo "mkdocs.yml already exists — skipping scaffold"
+          else
+            mkdocs new .
+          fi
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+          else
+            git commit -m "Initialize MkDocs project with Material theme"
+            git push
+          fi
