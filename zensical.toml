@@ -54,8 +54,9 @@ features = [
 
 # logo = "assets/logo.png"
 
-# [project.theme.icon]
+[project.theme.icon]
 # logo = "lucide/smile"
+repo = "fontawesome/brands/github"
 
 # [project.theme.font]
 # text = "Inter"
