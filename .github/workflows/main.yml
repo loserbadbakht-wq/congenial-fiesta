@@ -1,43 +1,53 @@
-name: Setup MkDocs Material
+name: Zensical Docs
 
 on:
-  workflow_dispatch:        # run manually from the Actions tab
+  push:
+    branches: [main]
+  workflow_dispatch:        # allows manual scaffolding run
 
 permissions:
-  contents: write           # needed to push back to the repo
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  setup:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.x"
 
-      - name: Install MkDocs Material
-        run: pip install mkdocs-material
+      - name: Install Zensical
+        run: pip install zensical
 
-      - name: Scaffold MkDocs project
+      - name: Scaffold Zensical (if missing)
         run: |
-          if [ -f mkdocs.yml ]; then
-            echo "mkdocs.yml already exists — skipping scaffold"
+          if [ ! -f zensical.toml ]; then
+            zensical new .
           else
-            mkdocs new .
+            echo "zensical.toml already exists — skipping scaffold"
           fi
 
-      - name: Commit and push
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "Nothing to commit"
-          else
-            git commit -m "Initialize MkDocs project with Material theme"
-            git push
-          fi
+      - name: Build site
+        run: zensical build --clean
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
